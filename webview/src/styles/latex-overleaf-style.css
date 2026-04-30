@@ -1,0 +1,183 @@
+/* latex-overleaf-style.css - Overleaf Times New Roman 风格 */
+
+/* 行内公式 */
+.latex-inline {
+  font-family: 'Times New Roman', 'STIX Two Text', 'XITS', serif !important;
+  font-size: 1.05em;
+  vertical-align: baseline;
+}
+
+/* 块级公式 */
+.latex-block {
+  font-family: 'Times New Roman', 'STIX Two Text', 'XITS', serif !important;
+  font-size: 1.1em;
+  margin: 0.8em 0;
+  text-align: center;
+  overflow-x: auto;
+}
+
+/* 覆盖 KaTeX 默认字体 */
+.latex-inline .katex,
+.latex-block .katex {
+  font-family: 'Times New Roman', 'STIX Two Text', 'XITS', serif !important;
+  font-size: inherit;
+}
+
+/* 数学符号使用 serif 字体 */
+.latex-inline .katex .mord,
+.latex-block .katex .mord,
+.latex-inline .katex .mbin,
+.latex-block .katex .mbin,
+.latex-inline .katex .mrel,
+.latex-block .katex .mrel,
+.latex-inline .katex .mopen,
+.latex-block .katex .mopen,
+.latex-inline .katex .mclose,
+.latex-block .katex .mclose,
+.latex-inline .katex .mpunct,
+.latex-block .katex .mpunct,
+.latex-inline .katex .minner,
+.latex-block .katex .minner {
+  font-family: 'Times New Roman', 'STIX Two Text', 'XITS', serif !important;
+}
+
+/* 调整字母间距（类似 Overleaf） */
+.latex-inline .katex .mord,
+.latex-block .katex .mord,
+.latex-inline .katex .mbool,
+.latex-block .katex .mbool {
+  font-family: 'Times New Roman', 'STIX Two Text', 'XITS', serif !important;
+  font-style: normal;
+}
+
+/* 调整运算符 */
+.latex-inline .katex .mop,
+.latex-block .katex .mop {
+  font-family: 'Times New Roman', 'STIX Two Text', 'XITS', serif !important;
+  font-style: normal;
+}
+
+/* 调整希腊字母 */
+.latex-inline .katex .malpha,
+.latex-block .katex .malpha,
+.latex-inline .katex .mbeta,
+.latex-block .katex .mbeta,
+.latex-inline .katex .mgamma,
+.latex-block .katex .mgamma,
+.latex-inline .katex .mdelta,
+.latex-block .katex .mdelta,
+.latex-inline .katex .mepsilon,
+.latex-block .katex .mepsilon,
+.latex-inline .katex .mzeta,
+.latex-block .katex .mzeta,
+.latex-inline .katex .meta,
+.latex-block .katex .meta,
+.latex-inline .katex .mtheta,
+.latex-block .katex .mtheta,
+.latex-inline .katex .miota,
+.latex-block .katex .miota,
+.latex-inline .katex .mkappa,
+.latex-block .katex .mkappa,
+.latex-inline .katex .mlambda,
+.latex-block .katex .mlambda,
+.latex-inline .katex .mmu,
+.latex-block .katex .mmu,
+.latex-inline .katex .mnu,
+.latex-block .katex .mnu,
+.latex-inline .katex .mxi,
+.latex-block .katex .mxi,
+.latex-inline .katex .mpi,
+.latex-block .katex .mpi,
+.latex-inline .katex .mrho,
+.latex-block .katex .mrho,
+.latex-inline .katex .msigma,
+.latex-block .katex .msigma,
+.latex-inline .katex .mtau,
+.latex-block .katex .mtau,
+.latex-inline .katex .mupsilon,
+.latex-block .katex .mupsilon,
+.latex-inline .katex .mphi,
+.latex-block .katex .mphi,
+.latex-inline .katex .mchi,
+.latex-block .katex .mchi,
+.latex-inline .katex .mpsi,
+.latex-block .katex .mpsi,
+.latex-inline .katex .momega,
+.latex-block .katex .momega,
+.latex-inline .katex .mGamma,
+.latex-block .katex .mGamma,
+.latex-inline .katex .mDelta,
+.latex-block .katex .mDelta,
+.latex-inline .katex .mTheta,
+.latex-block .katex .mTheta,
+.latex-inline .katex .mLambda,
+.latex-block .katex .mLambda,
+.latex-inline .katex .mXi,
+.latex-block .katex .mXi,
+.latex-inline .katex .mPi,
+.latex-block .katex .mPi,
+.latex-inline .katex .mSigma,
+.latex-block .katex .mSigma,
+.latex-inline .katex .mUpsilon,
+.latex-block .katex .mUpsilon,
+.latex-inline .katex .mPhi,
+.latex-block .katex .mPhi,
+.latex-inline .katex .mPsi,
+.latex-block .katex .mPsi,
+.latex-inline .katex .mOmega,
+.latex-block .katex .mOmega {
+  font-family: 'Times New Roman', 'STIX Two Text', 'XITS', serif !important;
+}
+
+/* 调整数字 */
+.latex-inline .katex .mn,
+.latex-block .katex .mn {
+  font-family: 'Times New Roman', 'STIX Two Text', 'XITS', serif !important;
+}
+
+/* 调整括号和分隔符 */
+.latex-inline .katex .delimsizing,
+.latex-block .katex .delimsizing,
+.latex-inline .katex .delim-size1,
+.latex-block .katex .delim-size1,
+.latex-inline .katex .delim-size2,
+.latex-block .katex .delim-size2,
+.latex-inline .katex .delim-size3,
+.latex-block .katex .delim-size3,
+.latex-inline .katex .delim-size4,
+.latex-block .katex .delim-size4 {
+  font-family: 'Times New Roman', 'STIX Two Text', 'XITS', serif !important;
+}
+
+/* 调整分数、上下标、根号 */
+.latex-inline .katex .mfrac,
+.latex-block .katex .mfrac,
+.latex-inline .katex .msqrt,
+.latex-block .katex .msqrt,
+.latex-inline .katex .mroot,
+.latex-block .katex .mroot,
+.latex-inline .katex .msup,
+.latex-block .katex .msup,
+.latex-inline .katex .msub,
+.latex-block .katex .msub,
+.latex-inline .katex .msubsup,
+.latex-block .katex .msubsup,
+.latex-inline .katex .mmultilimits,
+.latex-block .katex .mmultilimits {
+  font-family: 'Times New Roman', 'STIX Two Text', 'XITS', serif !important;
+}
+
+/* 调整行高（类似 Overleaf） */
+.latex-block .katex-display {
+  line-height: 1.6;
+  padding: 0.5em 0;
+}
+
+/* 错误样式 */
+.latex-error {
+  color: #cc0000;
+  background-color: #fff0f0;
+  padding: 2px 4px;
+  border-radius: 3px;
+  font-family: monospace;
+}

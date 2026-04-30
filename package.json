@@ -1,0 +1,130 @@
+{
+  "name": "vscode-latex-mindmap",
+  "displayName": "LaTeX Mindmap",
+  "description": "A VS Code extension for creating mindmaps with LaTeX mathematical content",
+  "version": "1.0.0",
+  "publisher": "texmind",
+  "engines": {
+    "vscode": "^1.85.0"
+  },
+  "categories": [
+    "Other",
+    "Visualization"
+  ],
+  "main": "./out/extension.js",
+  "scripts": {
+    "vscode:prepublish": "npm run compile",
+    "compile": "tsc -p ./tsconfig.json",
+    "watch": "tsc -watch -p ./tsconfig.json",
+    "build:webview": "vite --config webview/vite.config.ts build",
+    "dev:webview": "vite --config webview/vite.config.ts",
+    "test": "npm run compile && npm run build:webview"
+  },
+  "dependencies": {
+    "d3-flextree": "^2.1.2",
+    "d3-hierarchy": "^3.1.2",
+    "katex": "^0.16.45",
+    "nanoid": "^5.0.7",
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0",
+    "zustand": "^4.5.2"
+  },
+  "devDependencies": {
+    "@types/d3-hierarchy": "^3.1.7",
+    "@types/katex": "^0.16.8",
+    "@types/node": "^20.19.39",
+    "@types/react": "^18.2.73",
+    "@types/react-dom": "^18.2.22",
+    "@types/vscode": "^1.87.0",
+    "@vitejs/plugin-react": "^4.2.1",
+    "esbuild": "^0.20.2",
+    "typescript": "^5.4.3",
+    "vite": "^5.2.8"
+  },
+  "activationEvents": [
+    "onCustomEditor:texmind.editor",
+    "onCommand:texmind.newMindmap",
+    "onCommand:texmind.exportSvg",
+    "onCommand:texmind.exportJson",
+    "onCommand:texmind.undo",
+    "onCommand:texmind.redo",
+    "*"
+  ],
+  "contributes": {
+    "commands": [
+      {
+        "command": "texmind.newMindmap",
+        "title": "TeX Mindmap: New Mindmap"
+      },
+      {
+        "command": "texmind.exportSvg",
+        "title": "TeX Mindmap: Export as SVG"
+      },
+      {
+        "command": "texmind.exportJson",
+        "title": "TeX Mindmap: Export as JSON"
+      },
+      {
+        "command": "texmind.undo",
+        "title": "TeX Mindmap: Undo"
+      },
+      {
+        "command": "texmind.redo",
+        "title": "TeX Mindmap: Redo"
+      },
+      {
+        "command": "texmind.save",
+        "title": "TeX Mindmap: Save"
+      }
+    ],
+    "keybindings": [
+      {
+        "command": "texmind.undo",
+        "key": "ctrl+z",
+        "mac": "cmd+z",
+        "when": "webviewId == 'texmind.editor'"
+      },
+      {
+        "command": "texmind.redo",
+        "key": "ctrl+y",
+        "mac": "cmd+shift+z",
+        "when": "webviewId == 'texmind.editor'"
+      },
+      {
+        "command": "texmind.save",
+        "key": "ctrl+s",
+        "mac": "cmd+s",
+        "when": "webviewId == 'texmind.editor'"
+      }
+    ],
+    "customEditors": [
+      {
+        "viewType": "texmind.editor",
+        "displayName": "TeX Mindmap Editor",
+        "selector": [
+          {
+            "filenamePattern": "*.texmind"
+          },
+          {
+            "filenamePattern": "*.km"
+          }
+        ]
+      }
+    ],
+    "configuration": {
+      "title": "LaTeX Mindmap",
+      "properties": {
+        "texmind.theme": {
+          "type": "string",
+          "default": "fresh-blue",
+          "description": "Mindmap theme"
+        },
+        "texmind.layoutDirection": {
+          "type": "string",
+          "default": "right",
+          "description": "Default layout direction (right, left, top)"
+        }
+      }
+    }
+  }
+}

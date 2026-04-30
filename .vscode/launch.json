@@ -1,0 +1,39 @@
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "name": "Run Extension",
+      "type": "extensionHost",
+      "request": "launch",
+      "args": [
+        "--extensionDevelopmentPath=${workspaceFolder}"
+      ],
+      "outFiles": [
+        "${workspaceFolder}/out/**/*.js"
+      ],
+      "sourceMaps": true,
+      "preLaunchTask": "Build All (TS + Webview)",
+      "presentation": {
+        "group": "Debug",
+        "order": 1
+      }
+    },
+    {
+      "name": "Run Extension (No Debug)",
+      "type": "extensionHost",
+      "request": "launch",
+      "args": [
+        "--extensionDevelopmentPath=${workspaceFolder}"
+      ],
+      "outFiles": [
+        "${workspaceFolder}/out/**/*.js"
+      ],
+      "preLaunchTask": "Build All (TS + Webview)",
+      "debug": false,
+      "presentation": {
+        "group": "Debug",
+        "order": 2
+      }
+    }
+  ]
+}

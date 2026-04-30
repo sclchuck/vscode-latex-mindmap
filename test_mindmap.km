@@ -1,0 +1,398 @@
+{
+    "root": {
+        "data": {
+            "id": "dhv8llsijbc0",
+            "created": 1776409464050,
+            "text": "Games101"
+        },
+        "children": [
+            {
+                "data": {
+                    "id": "dhv94dgl1k00",
+                    "created": 1776410934834,
+                    "text": "光栅化",
+                    "layout": null
+                },
+                "children": []
+            },
+            {
+                "data": {
+                    "id": "dhv94gocw5s0",
+                    "created": 1776410941834,
+                    "text": "曲线与曲面",
+                    "layout": null
+                },
+                "children": []
+            },
+            {
+                "data": {
+                    "id": "dhv94nh8u280",
+                    "created": 1776410956641,
+                    "text": "光线追踪",
+                    "layout": null
+                },
+                "children": []
+            },
+            {
+                "data": {
+                    "id": "dhv94vvu0bk0",
+                    "created": 1776410974938,
+                    "text": "动画与模拟",
+                    "layout": null
+                },
+                "children": []
+            },
+            {
+                "data": {
+                    "id": "dhw2uyj5p8g0",
+                    "created": 1776494830357,
+                    "text": "数学",
+                    "layout": null
+                },
+                "children": [
+                    {
+                        "data": {
+                            "id": "dhwwwodmha80",
+                            "created": 1776579598280,
+                            "text": "线性代数",
+                            "layout": null
+                        },
+                        "children": [
+                            {
+                                "data": {
+                                    "id": "dhwwwq8jqqg0",
+                                    "created": 1776579602327,
+                                    "text": "向量\n[默认列主序]",
+                                    "layout": null
+                                },
+                                "children": [
+                                    {
+                                        "data": {
+                                            "id": "dhwwws1nd6g0",
+                                            "created": 1776579606263,
+                                            "text": "点乘",
+                                            "layout": null
+                                        },
+                                        "children": [
+                                            {
+                                                "data": {
+                                                    "id": "dhwwwxsfkrk0",
+                                                    "created": 1776579618767,
+                                                    "text": "投影",
+                                                    "layout": null
+                                                },
+                                                "children": [
+                                                    {
+                                                        "data": {
+                                                            "id": "dhwwx7pnt940",
+                                                            "created": 1776579640367,
+                                                            "text": "分解",
+                                                            "layout": null
+                                                        },
+                                                        "children": []
+                                                    }
+                                                ]
+                                            },
+                                            {
+                                                "data": {
+                                                    "id": "dhwwwzfzab40",
+                                                    "created": 1776579622367,
+                                                    "text": "方向",
+                                                    "layout": null
+                                                },
+                                                "children": []
+                                            }
+                                        ]
+                                    },
+                                    {
+                                        "data": {
+                                            "id": "dhwwwveki600",
+                                            "created": 1776579613575,
+                                            "text": "叉乘",
+                                            "layout": null,
+                                            "expandState": "expand"
+                                        },
+                                        "children": [
+                                            {
+                                                "data": {
+                                                    "id": "dhwxb5tueuo0",
+                                                    "created": 1776580733365,
+                                                    "text": "右手坐标系",
+                                                    "layout": null
+                                                },
+                                                "children": []
+                                            },
+                                            {
+                                                "data": {
+                                                    "id": "dhwxey0f28w0",
+                                                    "created": 1776581029805,
+                                                    "text": "向量方向",
+                                                    "layout": null
+                                                },
+                                                "children": []
+                                            },
+                                            {
+                                                "data": {
+                                                    "id": "dhwxf2i2vps0",
+                                                    "created": 1776581039580,
+                                                    "text": "点在三角形内外",
+                                                    "layout": null
+                                                },
+                                                "children": []
+                                            }
+                                        ]
+                                    },
+                                    {
+                                        "data": {
+                                            "id": "dhwwyrf9rnk0",
+                                            "created": 1776579761639,
+                                            "text": "符号",
+                                            "layout": null
+                                        },
+                                        "children": [
+                                            {
+                                                "data": {
+                                                    "id": "dhwwyu0opc00",
+                                                    "created": 1776579767287,
+                                                    "text": "单位：hat",
+                                                    "layout": null
+                                                },
+                                                "children": []
+                                            },
+                                            {
+                                                "data": {
+                                                    "id": "dhwwyzklmzc0",
+                                                    "created": 1776579779375,
+                                                    "text": "投影：prep",
+                                                    "layout": null
+                                                },
+                                                "children": []
+                                            }
+                                        ]
+                                    }
+                                ]
+                            },
+                            {
+                                "data": {
+                                    "id": "dhwxjnmoeqo0",
+                                    "created": 1776581399027,
+                                    "text": "矩阵",
+                                    "expandState": "expand"
+                                },
+                                "children": [
+                                    {
+                                        "data": {
+                                            "id": "dhwxuwx69400",
+                                            "created": 1776582281258,
+                                            "text": "叉乘",
+                                            "expandState": "expand"
+                                        },
+                                        "children": [
+                                            {
+                                                "data": {
+                                                    "id": "dhwxu44ghcw0",
+                                                    "created": 1776582218572,
+                                                    "text": "A_dual * b"
+                                                },
+                                                "children": []
+                                            }
+                                        ]
+                                    },
+                                    {
+                                        "data": {
+                                            "id": "dhwxv0fiuyw0",
+                                            "created": 1776582288898,
+                                            "text": "点乘"
+                                        },
+                                        "children": [
+                                            {
+                                                "data": {
+                                                    "id": "dhwxv2r4cl40",
+                                                    "created": 1776582293953,
+                                                    "text": "A^T * A"
+                                                },
+                                                "children": []
+                                            }
+                                        ]
+                                    },
+                                    {
+                                        "data": {
+                                            "id": "dhy2gjjbhvk0",
+                                            "created": 1776696820530,
+                                            "text": "左行右列"
+                                        },
+                                        "children": [
+                                            {
+                                                "data": {
+                                                    "id": "dhy2h1566940",
+                                                    "created": 1776696858857,
+                                                    "text": "A*x = y"
+                                                },
+                                                "children": [
+                                                    {
+                                                        "data": {
+                                                            "id": "dhy2h9msa1c0",
+                                                            "created": 1776696877336,
+                                                            "text": "A看做变换（基变换）   行为基"
+                                                        },
+                                                        "children": []
+                                                    },
+                                                    {
+                                                        "data": {
+                                                            "id": "dhy2hgdya4g0",
+                                                            "created": 1776696892040,
+                                                            "text": "x看做变换（线性组合）   列为组合单元"
+                                                        },
+                                                        "children": []
+                                                    }
+                                                ]
+                                            }
+                                        ]
+                                    }
+                                ]
+                            },
+                            {
+                                "data": {
+                                    "id": "dhy2km0hmfs0",
+                                    "created": 1776697139379,
+                                    "text": "变换"
+                                },
+                                "children": [
+                                    {
+                                        "data": {
+                                            "id": "dhy2kobxyxs0",
+                                            "created": 1776697144425,
+                                            "text": "[变换]缩放"
+                                        },
+                                        "children": []
+                                    },
+                                    {
+                                        "data": {
+                                            "id": "dhy2kwnr67s0",
+                                            "created": 1776697162553,
+                                            "text": "[变换]切变"
+                                        },
+                                        "children": []
+                                    },
+                                    {
+                                        "data": {
+                                            "id": "dhy2kskdx880",
+                                            "created": 1776697153642,
+                                            "text": "[变换]旋转"
+                                        },
+                                        "children": []
+                                    },
+                                    {
+                                        "data": {
+                                            "id": "dhyp4gwbgqo0",
+                                            "created": 1776760759944,
+                                            "text": "齐次坐标",
+                                            "expandState": "expand"
+                                        },
+                                        "children": [
+                                            {
+                                                "data": {
+                                                    "id": "dhyp9g6pa7k0",
+                                                    "created": 1776761150216,
+                                                    "text": "额外维度"
+                                                },
+                                                "children": [
+                                                    {
+                                                        "data": {
+                                                            "id": "dhyp9u697s00",
+                                                            "created": 1776761180664,
+                                                            "text": "方向"
+                                                        },
+                                                        "children": [
+                                                            {
+                                                                "data": {
+                                                                    "id": "dhyp9vo3wps0",
+                                                                    "created": 1776761183920,
+                                                                    "text": "(x, y, 0)"
+                                                                },
+                                                                "children": []
+                                                            }
+                                                        ]
+                                                    },
+                                                    {
+                                                        "data": {
+                                                            "id": "dhyp9yk36hs0",
+                                                            "created": 1776761190207,
+                                                            "text": "点(需要平移)"
+                                                        },
+                                                        "children": [
+                                                            {
+                                                                "data": {
+                                                                    "id": "dhypa6lymc80",
+                                                                    "created": 1776761207735,
+                                                                    "text": "(x,y,w)   =>  (x/w,y/w,1)"
+                                                                },
+                                                                "children": []
+                                                            }
+                                                        ]
+                                                    },
+                                                    {
+                                                        "data": {
+                                                            "id": "dhypdf4pi4w0",
+                                                            "created": 1776761461375,
+                                                            "text": "扩充定义"
+                                                        },
+                                                        "children": [
+                                                            {
+                                                                "data": {
+                                                                    "id": "dhypdin6pjk0",
+                                                                    "created": 1776761469023,
+                                                                    "text": "V±V=V"
+                                                                },
+                                                                "children": []
+                                                            },
+                                                            {
+                                                                "data": {
+                                                                    "id": "dhypdmo24ko0",
+                                                                    "created": 1776761477783,
+                                                                    "text": "P±V=P"
+                                                                },
+                                                                "children": []
+                                                            },
+                                                            {
+                                                                "data": {
+                                                                    "id": "dhypdytuz8w0",
+                                                                    "created": 1776761504255,
+                                                                    "text": "P-P=V"
+                                                                },
+                                                                "children": []
+                                                            },
+                                                            {
+                                                                "data": {
+                                                                    "id": "dhypegiwpm00",
+                                                                    "created": 1776761542775,
+                                                                    "text": "P+P=P_{mid} (通过/w)"
+                                                                },
+                                                                "children": []
+                                                            }
+                                                        ]
+                                                    }
+                                                ]
+                                            },
+                                            {
+                                                "data": {
+                                                    "id": "dhy2kuerx4o0",
+                                                    "created": 1776697157657,
+                                                    "text": "[变换]平移"
+                                                },
+                                                "children": []
+                                            }
+                                        ]
+                                    }
+                                ]
+                            }
+                        ]
+                    }
+                ]
+            }
+        ]
+    },
+    "template": "right",
+    "theme": "fresh-blue",
+    "version": "1.4.43"
+}
