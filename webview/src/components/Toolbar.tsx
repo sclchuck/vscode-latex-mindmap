@@ -146,44 +146,6 @@ export const Toolbar: React.FC<ToolbarProps> = ({
         导出 JSON
       </button>
       
-      <div style={{ width: 1, height: 24, backgroundColor: '#e0e0e0' }} />
-      
-      {/* 布局方向 */}
-      <select
-        value={layoutDirection}
-        onChange={handleLayoutChange}
-        style={{
-          padding: '6px 10px',
-          border: '1px solid #ddd',
-          borderRadius: 4,
-          fontSize: 13,
-          cursor: 'pointer',
-        }}
-      >
-        <option value="right">向右展开</option>
-        <option value="left">向左展开</option>
-        <option value="top">向下展开</option>
-      </select>
-      
-      {/* 主题选择 */}
-      <select
-        value={currentTheme.name}
-        onChange={handleThemeChange}
-        style={{
-          padding: '6px 10px',
-          border: '1px solid #ddd',
-          borderRadius: 4,
-          fontSize: 13,
-          cursor: 'pointer',
-        }}
-      >
-        {Object.entries(themes).map(([key, theme]) => (
-          <option key={key} value={key}>{theme.name}</option>
-        ))}
-      </select>
-      
-      <div style={{ width: 1, height: 24, backgroundColor: '#e0e0e0' }} />
-      
       {/* 缩放控制 */}
       <div style={{ display: 'flex', alignItems: 'center', gap: 5 }}>
         <button

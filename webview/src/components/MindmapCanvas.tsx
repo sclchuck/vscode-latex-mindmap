@@ -36,6 +36,10 @@ export const MindmapCanvas: React.FC<MindmapCanvasProps> = ({
   // 拖拽起始位置引用
   const dragStartPosRef = useRef<{ x: number; y: number } | null>(null);
   
+  // Pointer 捕获 ref - 修复右键 pan 卡顿问题
+  const panPointerIdRef = useRef<number | null>(null);
+  const panButtonRef = useRef<number | null>(null);
+  
   const {
     zoom,
     setZoom,
@@ -100,6 +104,14 @@ export const MindmapCanvas: React.FC<MindmapCanvasProps> = ({
         e.preventDefault();
         setIsSpacePressed(false);
         setIsPanning(false);
+        // 释放 pointer capture
+        if (panPointerIdRef.current !== null && containerRef.current) {
+          try {
+            containerRef.current.releasePointerCapture(panPointerIdRef.current);
+          } catch {}
+          panPointerIdRef.current = null;
+          panButtonRef.current = null;
+        }
       }
     };
     window.addEventListener('keydown', handleKeyDown);
@@ -178,8 +190,8 @@ export const MindmapCanvas: React.FC<MindmapCanvasProps> = ({
     }
   }, [screenToCanvas, layoutResult.nodes, clearAllSelection]);
   
-  // 鼠标移动 - 修复：检查左键是否按住
-  const handleSelectionMove = useCallback((e: React.MouseEvent) => {
+  // 处理框选移动
+  const handleSelectionMoveInternal = useCallback((e: { clientX: number; clientY: number; buttons: number }) => {
     const isLeftButtonDown = (e.buttons & 1) === 1;
     
     // 如果左键已经释放，但拖拽状态还存在，立即清理
@@ -263,41 +275,93 @@ export const MindmapCanvas: React.FC<MindmapCanvasProps> = ({
     setDropPreview(null);
   }, [selectionBox, layoutResult.nodes, selectedNodeIds, selectNodes, dragDropService, moveNodes]);
   
-  // 鼠标按下 - 支持右键 pan
-  const handleMouseDown = useCallback((e: React.MouseEvent) => {
+  // ==================== Pointer Events 修复右键 pan 卡顿 ====================
+  
+  // Pointer Down - 统一处理 pan 和框选
+  const handlePointerDown = useCallback((e: React.PointerEvent) => {
     // 右键 (button === 2) 或 中键 (button === 1) 或 Space 键 - 启动 pan
     if (isSpacePressed || e.button === 1 || e.button === 2) {
       e.preventDefault();
+      
+      // 捕获指针，防止鼠标移出 canvas 后丢事件
+      (e.currentTarget as HTMLElement).setPointerCapture(e.pointerId);
+      panPointerIdRef.current = e.pointerId;
+      panButtonRef.current = e.button;
+      
       setIsPanning(true);
       setPanStart({ x: e.clientX - panOffset.x, y: e.clientY - panOffset.y });
     } else if (e.button === 0) {
-      handleSelectionStart(e);
+      // 左键 - 启动框选或节点拖拽
+      handleSelectionStart(e as unknown as React.MouseEvent);
     }
   }, [isSpacePressed, panOffset, handleSelectionStart]);
   
-  // 鼠标移动（平移）
-  const handleMouseMove = useCallback((e: React.MouseEvent) => {
-    if (isPanning) {
+  // Pointer Move - 统一处理 pan 和框选/拖拽
+  const handlePointerMove = useCallback((e: React.PointerEvent) => {
+    // 如果正在 pan 且是指向正确的指针
+    if (isPanning && panPointerIdRef.current === e.pointerId) {
+      e.preventDefault();
+      e.stopPropagation();
+      
       setPanOffset({
         x: e.clientX - panStart.x,
         y: e.clientY - panStart.y,
       });
-    } else {
-      handleSelectionMove(e);
+      return;
     }
-  }, [isPanning, panStart, setPanOffset, handleSelectionMove]);
+    
+    // 处理框选/拖拽
+    handleSelectionMoveInternal({
+      clientX: e.clientX,
+      clientY: e.clientY,
+      buttons: e.buttons,
+    });
+  }, [isPanning, panStart, setPanOffset, handleSelectionMoveInternal]);
   
-  // 鼠标释放
-  const handleMouseUp = useCallback((e: React.MouseEvent) => {
+  // 结束 pan
+  const endPan = useCallback((e: React.PointerEvent) => {
+    if (panPointerIdRef.current === e.pointerId) {
+      try {
+        (e.currentTarget as HTMLElement).releasePointerCapture(e.pointerId);
+      } catch {}
+      
+      panPointerIdRef.current = null;
+      panButtonRef.current = null;
+      setIsPanning(false);
+    }
+  }, []);
+  
+  // Pointer Up
+  const handlePointerUp = useCallback((e: React.PointerEvent) => {
     // 标记鼠标释放
     dragDropService.SetMouseDown(false);
     
     if (isPanning) {
-      setIsPanning(false);
+      endPan(e);
     } else {
-      handleSelectionEnd(e);
+      handleSelectionEnd(e as unknown as React.MouseEvent);
     }
-  }, [isPanning, handleSelectionEnd, dragDropService]);
+  }, [isPanning, endPan, handleSelectionEnd, dragDropService]);
+  
+  // Pointer Cancel - 异常情况清理
+  const handlePointerCancel = useCallback((e: React.PointerEvent) => {
+    if (panPointerIdRef.current === e.pointerId) {
+      try {
+        (e.currentTarget as HTMLElement).releasePointerCapture(e.pointerId);
+      } catch {}
+      
+      panPointerIdRef.current = null;
+      panButtonRef.current = null;
+      setIsPanning(false);
+    }
+    
+    dragDropService.SetMouseDown(false);
+    dragDropService.CancelDrag();
+    dragStartPosRef.current = null;
+    setDropPreview(null);
+  }, [dragDropService]);
+  
+  // ==================== 保留旧的 mouse 事件用于节点内部 ====================
   
   // 鼠标离开 - 只有左键未按下时才处理
   const handleMouseLeave = useCallback((e: React.MouseEvent) => {
@@ -312,24 +376,6 @@ export const MindmapCanvas: React.FC<MindmapCanvasProps> = ({
     dragDropService.CancelDrag();
     dragStartPosRef.current = null;
     setDropPreview(null);
-    setIsPanning(false);
-  }, [dragDropService]);
-  
-  // 全局 mousemove 清理 - 防止左键释放时状态残留
-  useEffect(() => {
-    const handleWindowMouseMove = (event: MouseEvent) => {
-      const isLeftButtonDown = (event.buttons & 1) === 1;
-
-      if (!isLeftButtonDown && (dragStartPosRef.current || dragDropService.IsDragging)) {
-        dragDropService.SetMouseDown(false);
-        dragDropService.CancelDrag();
-        dragStartPosRef.current = null;
-        setDropPreview(null);
-      }
-    };
-
-    window.addEventListener('mousemove', handleWindowMouseMove);
-    return () => window.removeEventListener('mousemove', handleWindowMouseMove);
   }, [dragDropService]);
   
   // 全局鼠标释放处理 - 防止鼠标在 canvas 外释放导致状态残留
@@ -447,7 +493,7 @@ export const MindmapCanvas: React.FC<MindmapCanvasProps> = ({
     );
   };
   
-  // 渲染放置预览（双模式）- 修复：检查 IsMouseDown
+  // 渲染放置预览
   const renderDropPreview = () => {
     if (
       !dragDropService.IsMouseDown ||
@@ -467,10 +513,8 @@ export const MindmapCanvas: React.FC<MindmapCanvasProps> = ({
     const nodeHeight = targetLayout.height ?? 60;
     
     if (dropPreview.mode === DropMode.AsChild) {
-      // 模式 A：作为子节点 - 显示高亮边框 + "+" 图标在节点前面
       return (
         <>
-          {/* 高亮边框 */}
           <div
             style={{
               position: 'absolute',
@@ -484,7 +528,6 @@ export const MindmapCanvas: React.FC<MindmapCanvasProps> = ({
               zIndex: 999,
             }}
           />
-          {/* "+" 图标 - 显示在节点前面 */}
           <div
             style={{
               position: 'absolute',
@@ -510,13 +553,11 @@ export const MindmapCanvas: React.FC<MindmapCanvasProps> = ({
         </>
       );
     } else if (dropPreview.mode === DropMode.AsSibling) {
-      // 模式 B：作为兄弟节点 - 显示高亮边框 + 上/下箭头在节点前面
       const isBefore = dropPreview.insertPosition === InsertPosition.Before;
       const arrowSymbol = isBefore ? '↑' : '↓';
       
       return (
         <>
-          {/* 高亮边框 */}
           <div
             style={{
               position: 'absolute',
@@ -530,7 +571,6 @@ export const MindmapCanvas: React.FC<MindmapCanvasProps> = ({
               zIndex: 999,
             }}
           />
-          {/* 箭头图标 - 显示在节点前面 */}
           <div
             style={{
               position: 'absolute',
@@ -594,10 +634,16 @@ export const MindmapCanvas: React.FC<MindmapCanvasProps> = ({
         backgroundImage: 'radial-gradient(circle, #ddd 1px, transparent 1px)',
         backgroundSize: '20px 20px',
         position: 'relative',
+        // 关键：防止浏览器手势干扰 pointer 事件
+        touchAction: 'none',
+        // pan 时禁止选择
+        userSelect: isPanning ? 'none' : undefined,
       }}
-      onMouseDown={handleMouseDown}
-      onMouseMove={handleMouseMove}
-      onMouseUp={handleMouseUp}
+      // 使用 Pointer Events 替代 Mouse Events（修复右键 pan 卡顿）
+      onPointerDown={handlePointerDown}
+      onPointerMove={handlePointerMove}
+      onPointerUp={handlePointerUp}
+      onPointerCancel={handlePointerCancel}
       onMouseLeave={handleMouseLeave}
       onContextMenu={handleContextMenu}
     >
