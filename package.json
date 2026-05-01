@@ -53,7 +53,7 @@
     "onCommand:texmind.exportJson",
     "onCommand:texmind.undo",
     "onCommand:texmind.redo",
-    "*"
+    "onLanguage:km"
   ],
   "contributes": {
     "commands": [
