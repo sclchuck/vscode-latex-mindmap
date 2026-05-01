@@ -42,6 +42,10 @@
     "typescript": "^5.4.3",
     "vite": "^5.2.8"
   },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/sclchuck/vscode-latex-mindmap.git"
+  },
   "activationEvents": [
     "onCustomEditor:texmind.editor",
     "onCommand:texmind.newMindmap",
