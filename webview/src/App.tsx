@@ -1,6 +1,7 @@
 import { useEffect, useCallback, useRef } from 'react';
 import { MindmapCanvas } from './components/MindmapCanvas';
 import { Toolbar } from './components/Toolbar';
+import { StatusBar } from './components/StatusBar';
 import { useMindmapStore } from './store/mindmapStore';
 import { useMindmapShortcuts } from './hooks/useMindmapShortcuts';
 import { HostMessage, WebviewMessage } from './types';
@@ -297,6 +298,7 @@ export const App: React.FC = () => {
           onDeleteNode={handleDeleteNode}
         />
       </div>
+      <StatusBar />
     </div>
   );
 };

@@ -85,6 +85,20 @@ body {
   stroke-width: 2;
   stroke-linecap: round;
   stroke-linejoin: round;
+  transition: d 0.3s ease;
+}
+
+/* 连线绘制入场动画 */
+@keyframes linkDraw {
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+
+.link-entering {
+  stroke-dasharray: var(--link-length, 500);
+  stroke-dashoffset: var(--link-length, 500);
+  animation: linkDraw 0.35s ease forwards;
 }
 
 /* Toolbar */
@@ -310,4 +324,60 @@ body {
 .node-editor-cancel {
   background-color: #fff;
   border: 1px solid #ddd;
+}
+
+/* StatusBar */
+.statusbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  height: 22px;
+  padding: 0 10px;
+  background-color: #007acc;
+  color: #ffffff;
+  font-size: 12px;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  user-select: none;
+  flex-shrink: 0;
+}
+
+.statusbar-left,
+.statusbar-right {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.statusbar-item {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  cursor: default;
+  white-space: nowrap;
+}
+
+.statusbar-separator {
+  color: rgba(255, 255, 255, 0.35);
+  user-select: none;
+}
+
+/* Node wrapper — 位置过渡动画（展开 / 折叠时平滑滑动） */
+.mindmap-node-wrapper {
+  transition: left 0.3s ease, top 0.3s ease;
+}
+
+/* 节点入场动画（展开时新子节点缩放淡入） */
+@keyframes nodeEnter {
+  from {
+    opacity: 0;
+    transform: scale(0.8);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+.node-entering {
+  animation: nodeEnter 0.3s ease forwards;
 }

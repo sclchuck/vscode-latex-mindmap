@@ -1,4 +1,4 @@
-import React, { useRef, useEffect, useState, useCallback } from 'react';
+import React, { useRef, useEffect, useState, useCallback, useMemo } from 'react';
 import { MindmapDocument, MindmapNodeData, TreeLayoutNode } from '../types';
 import { calculateTreeLayout, getLinkPath } from '../layout/treeLayout';
 import { MindmapNode as MindmapNodeComponent } from './MindmapNode';
@@ -40,6 +40,14 @@ export const MindmapCanvas: React.FC<MindmapCanvasProps> = ({
   const panPointerIdRef = useRef<number | null>(null);
   const panButtonRef = useRef<number | null>(null);
   
+  // 入场动画追踪：记录上一帧可见节点 ID，用于检测新出现的节点
+  const prevVisibleNodeIdsRef = useRef<Set<string>>(new Set());
+  const enteringNodeIdsRef = useRef<Set<string>>(new Set());
+  
+  // 连线入场动画追踪
+  const prevVisibleLinkKeysRef = useRef<Set<string>>(new Set());
+  const enteringLinkKeysRef = useRef<Set<string>>(new Set());
+  
   const {
     zoom,
     setZoom,
@@ -59,6 +67,68 @@ export const MindmapCanvas: React.FC<MindmapCanvasProps> = ({
   
   // 计算布局
   const layoutResult = calculateTreeLayout(document.root, layoutConfig, nodeDimensions);
+  
+  // 追踪新出现的节点，用于入场动画
+  const currentVisibleIds = useMemo(
+    () => new Set(layoutResult.nodes.map((n) => n.data.data.id)),
+    [layoutResult.nodes]
+  );
+  
+  useEffect(() => {
+    const prevIds = prevVisibleNodeIdsRef.current;
+    const newIds = new Set<string>();
+    currentVisibleIds.forEach((id) => {
+      if (!prevIds.has(id)) {
+        newIds.add(id);
+      }
+    });
+    
+    if (newIds.size > 0) {
+      enteringNodeIdsRef.current = newIds;
+      const timer = setTimeout(() => {
+        enteringNodeIdsRef.current = new Set();
+      }, 350);
+      prevVisibleNodeIdsRef.current = currentVisibleIds;
+      return () => clearTimeout(timer);
+    }
+    
+    prevVisibleNodeIdsRef.current = currentVisibleIds;
+  }, [currentVisibleIds]);
+  
+  // 追踪新出现的连线，用于绘制入场动画
+  const currentVisibleLinkKeys = useMemo(
+    () => {
+      const keys = new Set<string>();
+      layoutResult.nodes.forEach((node) => {
+        if (node.parent) {
+          keys.add(`link-${node.data.data.id}`);
+        }
+      });
+      return keys;
+    },
+    [layoutResult.nodes]
+  );
+  
+  useEffect(() => {
+    const prevKeys = prevVisibleLinkKeysRef.current;
+    const newKeys = new Set<string>();
+    currentVisibleLinkKeys.forEach((key) => {
+      if (!prevKeys.has(key)) {
+        newKeys.add(key);
+      }
+    });
+    
+    if (newKeys.size > 0) {
+      enteringLinkKeysRef.current = newKeys;
+      const timer = setTimeout(() => {
+        enteringLinkKeysRef.current = new Set();
+      }, 400);
+      prevVisibleLinkKeysRef.current = currentVisibleLinkKeys;
+      return () => clearTimeout(timer);
+    }
+    
+    prevVisibleLinkKeysRef.current = currentVisibleLinkKeys;
+  }, [currentVisibleLinkKeys]);
   
   // 更新内容
   const handleUpdateContent = useCallback((nodeId: string, text: string) => {
@@ -459,14 +529,24 @@ export const MindmapCanvas: React.FC<MindmapCanvasProps> = ({
           n => n.data.data.id === node.parent!.data.data.id
         );
         if (parentNode) {
-          const path = getLinkPath(parentNode, node, layoutConfig.direction, layoutConfig);
+          const linkKey = `link-${node.data.data.id}`;
+          const isLinkEntering = enteringLinkKeysRef.current.has(linkKey);
+          const pathStr = getLinkPath(parentNode, node, layoutConfig.direction, layoutConfig);
+          
+          // 估算连线长度用于 stroke-dasharray（欧几里得距离近似）
+          const approxLen = Math.sqrt(
+            (parentNode.x - node.x) ** 2 + (parentNode.y - node.y) ** 2
+          );
+          
           links.push(
             <path
-              key={`link-${node.data.data.id}`}
-              d={path}
+              key={linkKey}
+              className={`mindmap-link${isLinkEntering ? ' link-entering' : ''}`}
+              d={pathStr}
               fill="none"
               stroke={currentTheme.lineColor}
               strokeWidth={2}
+              style={isLinkEntering ? { '--link-length': `${Math.ceil(approxLen)}` } as React.CSSProperties : undefined}
             />
           );
         }
@@ -687,9 +767,12 @@ export const MindmapCanvas: React.FC<MindmapCanvasProps> = ({
         }}
       >
         <div style={{ ...transformStyle, pointerEvents: 'auto', position: 'relative' }}>
-          {layoutResult.nodes.map((node: TreeLayoutNode) => (
+          {layoutResult.nodes.map((node: TreeLayoutNode) => {
+            const isEntering = enteringNodeIdsRef.current.has(node.data.data.id);
+            return (
             <div
               key={node.data.data.id}
+              className={`mindmap-node-wrapper${isEntering ? ' node-entering' : ''}`}
               style={{
                 position: 'absolute',
                 left: node.x,
@@ -707,7 +790,8 @@ export const MindmapCanvas: React.FC<MindmapCanvasProps> = ({
                 onNodeDragStart={handleNodeDragStart}
               />
             </div>
-          ))}
+            );
+          })}
         </div>
       </div>
     </div>

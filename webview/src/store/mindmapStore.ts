@@ -119,6 +119,22 @@ function generateNodeId(): string {
   return `${Date.now().toString(36)}${Math.random().toString(36).substr(2, 9)}`;
 }
 
+// rAF 累积器：把同一帧内多个 ResizeObserver 回调中的尺寸更新
+// 累积到一个缓冲区，由 rAF 在帧末统一 flush 进 store —— 这样 MindmapCanvas
+// 只会因为 nodeDimensions/relayoutVersion 变化重渲染 1 次，避免 N 个新节点
+// 触发 N 次中间帧渲染（导致展开时闪烁）。
+const pendingDimensions = new Map<string, { width: number; height: number }>();
+let pendingFlushFrameId: number | null = null;
+let flushDimensionsCallback: (() => void) | null = null;
+
+function scheduleDimensionsFlush() {
+  if (pendingFlushFrameId !== null) return; // 已调度，累积即可
+  pendingFlushFrameId = requestAnimationFrame(() => {
+    pendingFlushFrameId = null;
+    flushDimensionsCallback?.();
+  });
+}
+
 export const useMindmapStore = create<MindmapState>((set, get) => ({
   // 初始状态
   document: null,
@@ -300,21 +316,14 @@ export const useMindmapStore = create<MindmapState>((set, get) => ({
     console.log(`[Store] 清理尺寸缓存: ${nodeDimensions.size} -> ${newDimensions.size}`);
     console.log(`[Store] 可见节点数: ${visibleIds.size}`);
   
-    set({ 
-      document: { ...document }, 
+    set({
+      document: { ...document },
       nodeDimensions: newDimensions,
       isDirty: true,
       relayoutVersion: relayoutVersion + 1  // 强制重新布局
     });
-  
-    // 展开时延迟触发二次布局，等待新节点测量完成
-    if (newState === 'expand') {
-      setTimeout(() => {
-        const state = get();
-        console.log(`[Store] 展开后二次布局，当前尺寸数: ${state.nodeDimensions.size}`);
-        set({ relayoutVersion: state.relayoutVersion + 1 });
-      }, 50);
-    }
+    // 注意：不再使用 setTimeout 触发二次布局
+    // 新子节点测量完成后会通过 updateNodeDimensions 经 rAF 消抖统一触发一次重布局
   },
   
   // 添加节点
@@ -516,7 +525,7 @@ export const useMindmapStore = create<MindmapState>((set, get) => ({
   nodeDimensions: new Map(),
   
   updateNodeDimensions: (nodeId, width, height) => {
-    const { nodeDimensions, relayoutVersion } = get();
+    const { nodeDimensions } = get();
     const existing = nodeDimensions.get(nodeId);
 
     // 只有尺寸真正变化（误差 >= 1）时才更新
@@ -527,15 +536,19 @@ export const useMindmapStore = create<MindmapState>((set, get) => ({
     ) {
       return;
     }
+    // 同帧内若 pendingDimensions 已有相同尺寸也跳过，避免重复 flush
+    const pending = pendingDimensions.get(nodeId);
+    if (
+      pending &&
+      Math.abs(pending.width - width) < 1 &&
+      Math.abs(pending.height - height) < 1
+    ) {
+      return;
+    }
 
-    const newDimensions = new Map(nodeDimensions);
-    newDimensions.set(nodeId, { width, height });
-
-    set({
-      nodeDimensions: newDimensions,
-      relayoutVersion: relayoutVersion + 1,
-    });
-    console.log(`[Store] 更新节点尺寸: ${nodeId} -> ${width}x${height}`);
+    // 写入累积缓冲区（不立即 set store）
+    pendingDimensions.set(nodeId, { width, height });
+    scheduleDimensionsFlush();
   },
   
   requestRelayout: () => {
@@ -549,32 +562,47 @@ export const useMindmapStore = create<MindmapState>((set, get) => ({
   
   // 批量更新尺寸（防止频繁重新布局）
   batchUpdateNodeDimensions: (updates: Array<{ nodeId: string; width: number; height: number }>) => {
-    const { nodeDimensions, relayoutVersion } = get();
-    const newDimensions = new Map(nodeDimensions);
+    const { nodeDimensions } = get();
 
     let hasChanges = false;
     updates.forEach(({ nodeId, width, height }) => {
-      const existing = newDimensions.get(nodeId);
+      const existing = nodeDimensions.get(nodeId);
       // 只有尺寸真正变化（误差 >= 1）时才更新
       if (
         !existing ||
         Math.abs(existing.width - width) >= 1 ||
         Math.abs(existing.height - height) >= 1
       ) {
-        newDimensions.set(nodeId, { width, height });
+        pendingDimensions.set(nodeId, { width, height });
         hasChanges = true;
       }
     });
 
     if (hasChanges) {
-      set({
-        nodeDimensions: newDimensions,
-        relayoutVersion: relayoutVersion + 1,
-      });
-      console.log(`[Store] 批量更新尺寸: ${updates.length} 个节点`);
+      scheduleDimensionsFlush();
     }
   },
 }));
+
+// 注册 flush 回调：rAF 触发时把累积的所有尺寸一次性合并到 store，
+// 并 bump relayoutVersion —— 这样 MindmapCanvas 只重渲染 1 次。
+flushDimensionsCallback = () => {
+  if (pendingDimensions.size === 0) return;
+
+  const state = useMindmapStore.getState();
+  const merged = new Map(state.nodeDimensions);
+  pendingDimensions.forEach((size, id) => {
+    merged.set(id, size);
+  });
+  const flushedCount = pendingDimensions.size;
+  pendingDimensions.clear();
+
+  useMindmapStore.setState({
+    nodeDimensions: merged,
+    relayoutVersion: state.relayoutVersion + 1,
+  });
+  console.log(`[Store] rAF flush: 合并 ${flushedCount} 个尺寸更新, 触发 1 次重布局`);
+};
 
 // 递归查找节点
 function findNodeRecursive(node: MindmapNode, id: string): MindmapNode | null {
@@ -703,3 +731,4 @@ function containsNode(root: MindmapNode, targetId: string): boolean {
 
   return false;
 }
+
