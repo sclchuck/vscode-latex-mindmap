@@ -207,6 +207,19 @@ export class DragDropService {
       
         // 验证：不能拖到自己或后代
         for (const draggedId of this._draggedNodeIds) {
+            const draggedNode = this.FindNodeInTree(draggedId, documentRoot);
+
+            if (!draggedNode) {
+                console.log(`[DragDropService] 被拖拽节点不存在: ${draggedId}`);
+                return {
+                    targetParentId: targetNodeId,
+                    insertIndex: 0,
+                    isValid: false,
+                    mode: DropMode.AsChild,
+                    targetNodeId
+                };
+            }
+
             if (draggedId === targetNodeId) {
                 console.log(`[DragDropService] 不能拖到自己`);
                 return {
@@ -217,8 +230,11 @@ export class DragDropService {
                     targetNodeId
                 };
             }
-            if (this.ContainsDescendant(targetNode, draggedId)) {
-                console.log(`[DragDropService] 目标节点包含被拖拽节点`);
+
+            // 关键修复：判断 draggedNode 是否包含 targetNodeId
+            // 即不能把一个节点拖到自己的后代下面
+            if (this.ContainsDescendant(draggedNode, targetNodeId)) {
+                console.log(`[DragDropService] 不能移动到自己的后代中: ${draggedId} -> ${targetNodeId}`);
                 return {
                     targetParentId: targetNodeId,
                     insertIndex: 0,

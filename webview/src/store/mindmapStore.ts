@@ -399,14 +399,66 @@ export const useMindmapStore = create<MindmapState>((set, get) => ({
       return false;
     }
     
-    // 1. 按文档顺序排序（保持相对顺序）
-    const sortedMoves = [...moves].sort((a, b) => {
+    // 防御性校验：检查所有移动的合法性
+    const moveIdSet = new Set(moves.map(m => m.nodeId));
+    
+    // 1. 过滤掉有选中祖先的节点（只移动顶层节点）
+    // 如果同时选中父子节点，只移动父节点，子节点会随父节点一起移动
+    const topLevelMoves = moves.filter(move => {
+      const hasAncestor = hasSelectedAncestor(move.nodeId, moveIdSet, document.root);
+      if (hasAncestor) {
+        console.log(`[Store] 跳过子孙节点移动，因为其祖先已在移动集合中: ${move.nodeId}`);
+      }
+      return !hasAncestor;
+    });
+    
+    if (topLevelMoves.length === 0) {
+      console.log(`[Store] moveNodes: 过滤后没有有效移动`);
+      return false;
+    }
+    
+    // 2. 校验每个移动的合法性
+    for (const move of topLevelMoves) {
+      const movingNode = findNodeRecursive(document.root, move.nodeId);
+      const newParentNode = findNodeRecursive(document.root, move.newParentId);
+      
+      if (!movingNode) {
+        console.log(`[Store] moveNodes: 移动节点不存在 ${move.nodeId}`);
+        return false;
+      }
+      
+      if (!newParentNode) {
+        console.log(`[Store] moveNodes: 新父节点不存在 ${move.newParentId}`);
+        return false;
+      }
+      
+      // 不能移动根节点
+      if (document.root.data.id === move.nodeId) {
+        console.log(`[Store] moveNodes: 不能移动根节点`);
+        return false;
+      }
+      
+      // 不能移动到自己下面
+      if (move.nodeId === move.newParentId) {
+        console.log(`[Store] moveNodes: 不能移动到自己下面 ${move.nodeId}`);
+        return false;
+      }
+      
+      // 不能移动到自己的后代下面（形成循环）
+      if (containsNode(movingNode, move.newParentId)) {
+        console.log(`[Store] moveNodes: 不能移动到自己的后代下面 ${move.nodeId} -> ${move.newParentId}`);
+        return false;
+      }
+    }
+    
+    // 3. 按文档顺序排序（保持相对顺序）
+    const sortedMoves = [...topLevelMoves].sort((a, b) => {
       const orderA = getDocumentOrder(a.nodeId, document.root);
       const orderB = getDocumentOrder(b.nodeId, document.root);
       return orderA - orderB;
     });
     
-    // 2. 准备移动信息（调整插入索引避免冲突）
+    // 4. 准备移动信息（调整插入索引避免冲突）
     const moveInfos: Array<{
       nodeId: string;
       oldParentId: string;
@@ -445,11 +497,11 @@ export const useMindmapStore = create<MindmapState>((set, get) => ({
       return false;
     }
     
-    // 3. 创建批量移动操作
+    // 5. 创建批量移动操作
     const op = new MindmapOpBatchMove(moveInfos);
     operationManager.execute(document, op);
     
-    // 4. 深拷贝触发 React 重新渲染
+    // 6. 深拷贝触发 React 重新渲染
     set({ 
       document: JSON.parse(JSON.stringify(document)),
       isDirty: true 
@@ -611,4 +663,43 @@ function collectVisibleNodeIds(node: MindmapNode, result: Set<string> = new Set(
   
   node.children.forEach(child => collectVisibleNodeIds(child, result));
   return result;
+}
+
+/**
+ * 检查节点是否有选中的祖先节点
+ * 用于过滤：如果父子节点同时被选中，只移动父节点
+ */
+function hasSelectedAncestor(
+  nodeId: string,
+  selectedIds: Set<string>,
+  root: MindmapNode
+): boolean {
+  let parentInfo = findParentNode(root, nodeId);
+
+  while (parentInfo) {
+    const parentId = parentInfo.parent.data.id;
+
+    if (selectedIds.has(parentId)) {
+      return true;
+    }
+
+    parentInfo = findParentNode(root, parentId);
+  }
+
+  return false;
+}
+
+/**
+ * 检查节点树中是否包含指定 ID 的节点
+ */
+function containsNode(root: MindmapNode, targetId: string): boolean {
+  if (root.data.id === targetId) return true;
+
+  for (const child of root.children) {
+    if (containsNode(child, targetId)) {
+      return true;
+    }
+  }
+
+  return false;
 }

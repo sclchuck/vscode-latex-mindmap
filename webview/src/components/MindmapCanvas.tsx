@@ -150,17 +150,22 @@ export const MindmapCanvas: React.FC<MindmapCanvasProps> = ({
     // 标记鼠标按下
     dragDropService.SetMouseDown(true);
     
+    // 保存当前选中状态（在状态更新前）
+    const wasSelected = isNodeSelected(nodeId);
+    
     // 如果节点未选中，先选中它
-    if (!isNodeSelected(nodeId)) {
+    if (!wasSelected) {
       setSelectedNodeId(nodeId);
     }
     
     const canvasPos = screenToCanvas(e.clientX, e.clientY);
     dragStartPosRef.current = { x: e.clientX, y: e.clientY };
     
-    // 获取选中的节点
-    const currentSelectedIds = Array.from(selectedNodeIds);
-    const idsToDrag = currentSelectedIds.length > 0 ? currentSelectedIds : [nodeId];
+    // 关键修复：如果当前节点未选中，就只拖当前节点，不要拖旧选区
+    // 因为 React 状态更新是异步的，直接读取 selectedNodeIds 会得到旧值
+    const idsToDrag = wasSelected
+      ? Array.from(selectedNodeIds)
+      : [nodeId];
     
     // 开始拖拽
     dragDropService.BeginDrag(idsToDrag, canvasPos.x, canvasPos.y);
