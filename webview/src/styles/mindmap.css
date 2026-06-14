@@ -85,7 +85,13 @@ body {
   stroke-width: 2;
   stroke-linecap: round;
   stroke-linejoin: round;
+  /* 连线路径平滑移动动画（排除正在入场的新连线） */
   transition: d 0.3s ease;
+}
+
+.mindmap-link.link-entering {
+  /* 入场连线使用 stroke-dashoffset 动画，禁用路径过渡避免冲突 */
+  transition: none;
 }
 
 /* 连线绘制入场动画 */
@@ -361,23 +367,27 @@ body {
   user-select: none;
 }
 
-/* Node wrapper — 位置过渡动画（展开 / 折叠时平滑滑动） */
+/* Node wrapper — 节点位置平滑移动动画（排除正在入场的新节点） */
 .mindmap-node-wrapper {
   transition: left 0.3s ease, top 0.3s ease;
 }
 
-/* 节点入场动画（展开时新子节点缩放淡入） */
+.mindmap-node-wrapper.node-entering {
+  /* 入场节点使用自己的淡入动画，禁用位置过渡避免冲突 */
+  transition: none;
+}
+
+/* 节点入场动画（展开时新子节点淡入）
+   不使用 transform: scale() 或 filter: blur()，避免与父级 pan/zoom transform 冲突导致抽动 */
 @keyframes nodeEnter {
   from {
     opacity: 0;
-    transform: scale(0.8);
   }
   to {
     opacity: 1;
-    transform: scale(1);
   }
 }
 
 .node-entering {
-  animation: nodeEnter 0.3s ease forwards;
+  animation: nodeEnter 0.35s ease forwards;
 }

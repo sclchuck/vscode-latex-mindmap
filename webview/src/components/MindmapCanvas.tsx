@@ -1,4 +1,4 @@
-import React, { useRef, useEffect, useState, useCallback, useMemo } from 'react';
+import React, { useRef, useEffect, useLayoutEffect, useState, useCallback, useMemo } from 'react';
 import { MindmapDocument, MindmapNodeData, TreeLayoutNode } from '../types';
 import { calculateTreeLayout, getLinkPath } from '../layout/treeLayout';
 import { MindmapNode as MindmapNodeComponent } from './MindmapNode';
@@ -41,12 +41,13 @@ export const MindmapCanvas: React.FC<MindmapCanvasProps> = ({
   const panButtonRef = useRef<number | null>(null);
   
   // 入场动画追踪：记录上一帧可见节点 ID，用于检测新出现的节点
+  // 使用 state 而非 ref，确保 node-entering 类在首次渲染时就被应用
   const prevVisibleNodeIdsRef = useRef<Set<string>>(new Set());
-  const enteringNodeIdsRef = useRef<Set<string>>(new Set());
+  const [enteringNodeIds, setEnteringNodeIds] = useState<Set<string>>(new Set());
   
   // 连线入场动画追踪
   const prevVisibleLinkKeysRef = useRef<Set<string>>(new Set());
-  const enteringLinkKeysRef = useRef<Set<string>>(new Set());
+  const [enteringLinkKeys, setEnteringLinkKeys] = useState<Set<string>>(new Set());
   
   const {
     zoom,
@@ -74,7 +75,9 @@ export const MindmapCanvas: React.FC<MindmapCanvasProps> = ({
     [layoutResult.nodes]
   );
   
-  useEffect(() => {
+  // 使用 useLayoutEffect 在浏览器绘制前同步检测新节点并设置 state
+  // 这样新节点从第一帧开始就有入场动画，避免"瞬间出现"导致的抽动感
+  useLayoutEffect(() => {
     const prevIds = prevVisibleNodeIdsRef.current;
     const newIds = new Set<string>();
     currentVisibleIds.forEach((id) => {
@@ -84,9 +87,10 @@ export const MindmapCanvas: React.FC<MindmapCanvasProps> = ({
     });
     
     if (newIds.size > 0) {
-      enteringNodeIdsRef.current = newIds;
+      // 同步设置 state，触发重渲染（在绘制前完成）
+      setEnteringNodeIds(newIds);
       const timer = setTimeout(() => {
-        enteringNodeIdsRef.current = new Set();
+        setEnteringNodeIds(new Set());
       }, 350);
       prevVisibleNodeIdsRef.current = currentVisibleIds;
       return () => clearTimeout(timer);
@@ -109,7 +113,7 @@ export const MindmapCanvas: React.FC<MindmapCanvasProps> = ({
     [layoutResult.nodes]
   );
   
-  useEffect(() => {
+  useLayoutEffect(() => {
     const prevKeys = prevVisibleLinkKeysRef.current;
     const newKeys = new Set<string>();
     currentVisibleLinkKeys.forEach((key) => {
@@ -119,10 +123,10 @@ export const MindmapCanvas: React.FC<MindmapCanvasProps> = ({
     });
     
     if (newKeys.size > 0) {
-      enteringLinkKeysRef.current = newKeys;
+      setEnteringLinkKeys(newKeys);
       const timer = setTimeout(() => {
-        enteringLinkKeysRef.current = new Set();
-      }, 400);
+        setEnteringLinkKeys(new Set());
+      }, 350);
       prevVisibleLinkKeysRef.current = currentVisibleLinkKeys;
       return () => clearTimeout(timer);
     }
@@ -530,7 +534,7 @@ export const MindmapCanvas: React.FC<MindmapCanvasProps> = ({
         );
         if (parentNode) {
           const linkKey = `link-${node.data.data.id}`;
-          const isLinkEntering = enteringLinkKeysRef.current.has(linkKey);
+          const isLinkEntering = enteringLinkKeys.has(linkKey);
           const pathStr = getLinkPath(parentNode, node, layoutConfig.direction, layoutConfig);
           
           // 估算连线长度用于 stroke-dasharray（欧几里得距离近似）
@@ -768,7 +772,7 @@ export const MindmapCanvas: React.FC<MindmapCanvasProps> = ({
       >
         <div style={{ ...transformStyle, pointerEvents: 'auto', position: 'relative' }}>
           {layoutResult.nodes.map((node: TreeLayoutNode) => {
-            const isEntering = enteringNodeIdsRef.current.has(node.data.data.id);
+            const isEntering = enteringNodeIds.has(node.data.data.id);
             return (
             <div
               key={node.data.data.id}

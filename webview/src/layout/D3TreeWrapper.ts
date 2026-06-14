@@ -104,13 +104,15 @@ function getValidSizeValue(value: unknown, fallback: number): number {
  * 优先顺序：
  * 1. 传入的 nodeDimensions Map 中的尺寸
  * 2. 节点上存储的真实尺寸 (measuredWidth/measuredHeight)
- * 3. 节点上存储的 width/height
- * 4. 配置中的默认值
+ * 3. 父节点已测量的尺寸（新展开节点的最佳预估）
+ * 4. 节点上存储的 width/height
+ * 5. 配置中的默认值
  */
 function getNodeSize(
     node: MindmapNode,
     config: LayoutConfig,
-    nodeDimensions?: Map<string, { width: number; height: number }>
+    nodeDimensions?: Map<string, { width: number; height: number }>,
+    parentSize?: NodeSize,
 ): NodeSize {
     const nodeId = node.data.id;
     const data = node.data as unknown as {
@@ -130,15 +132,28 @@ function getNodeSize(
     }
 
     // 2. 使用节点上存储的尺寸
+    const storedWidth = getValidSizeValue(
+        data.measuredWidth ?? data.width,
+        0,  // 用 0 标记未测量，下面统一处理
+    );
+    const storedHeight = getValidSizeValue(
+        data.measuredHeight ?? data.height,
+        0,
+    );
+
+    if (storedWidth > 0 && storedHeight > 0) {
+        return { width: storedWidth, height: storedHeight };
+    }
+
+    // 3. 使用父节点尺寸作为预估（新展开节点通常与父节点尺寸相近）
+    if (parentSize && parentSize.width > 0 && parentSize.height > 0) {
+        return { width: parentSize.width, height: parentSize.height };
+    }
+
+    // 4. 配置默认值兜底
     return {
-        width: getValidSizeValue(
-            data.measuredWidth ?? data.width,
-            config.nodeWidth,
-        ),
-        height: getValidSizeValue(
-            data.measuredHeight ?? data.height,
-            config.nodeHeight,
-        ),
+        width: config.nodeWidth,
+        height: config.nodeHeight,
     };
 }
 
@@ -221,8 +236,8 @@ export class D3TreeLayoutCalculator {
         this.nodeDimensions = nodeDimensions;
     }
 
-    private getNodeSize(node: MindmapNode): NodeSize {
-        return getNodeSize(node, this.config, this.nodeDimensions);
+    private getNodeSize(node: MindmapNode, parentSize?: NodeSize): NodeSize {
+        return getNodeSize(node, this.config, this.nodeDimensions, parentSize);
     }
 
     /**
@@ -277,7 +292,11 @@ export class D3TreeLayoutCalculator {
              * depthAxisSize 包含节点尺寸 + depth 间距
              */
             nodeSize: (node: HierarchyNode<MindmapNode>) => {
-                const size = self.getNodeSize(node.data);
+                // 获取父节点尺寸作为新展开节点的预估
+                const parentSize = node.parent
+                    ? self.getNodeSize(node.parent.data)
+                    : undefined;
+                const size = self.getNodeSize(node.data, parentSize);
                 const siblingSize = self.getSiblingAxisSize(size);
                 const depthSize = self.getDepthAxisSize(size);
                 return [siblingSize, depthSize + self.getDepthSpacing()];
@@ -328,7 +347,11 @@ export class D3TreeLayoutCalculator {
         const nodes: TreeLayoutNode[] = layoutNodes.map((node) => {
             const id = node.data.data.id;
             const originalNode = originalNodeById.get(id);
-            const size = this.getNodeSize(node.data);
+            // 传递父节点尺寸作为预估
+            const parentSize = node.parent
+                ? this.getNodeSize(node.parent.data)
+                : undefined;
+            const size = this.getNodeSize(node.data, parentSize);
             const siblingSize = this.getSiblingAxisSize(size);
             const depthSize = this.getDepthAxisSize(size);
 
@@ -424,7 +447,7 @@ export class LayoutCoordinateAdjuster {
             const screenCenter = this.mapDirection(node.x, node.y);
 
             const size = node.data
-                ? getNodeSize(node.data, this.config, this.nodeDimensions)
+                ? getNodeSize(node.data, this.config, this.nodeDimensions, undefined)
                 : {
                     width: node.width ?? this.config.nodeWidth,
                     height: node.height ?? this.config.nodeHeight,
